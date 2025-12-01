@@ -1,8 +1,11 @@
 import { GoogleGenAI } from "@google/genai";
 import { OpenRouter } from "@openrouter/sdk";
 import { Perplexity } from '@perplexity-ai/perplexity_ai';
+import dotenv from "dotenv";
+
+dotenv.config();
 const client = new Perplexity({
-  apiKey: "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",
+  apiKey: process.env.PERPLEXITY_API_KEY,
 });
 export async function generateInterviewQuestions(resumeText = "", skillsText = "") {
   try {
