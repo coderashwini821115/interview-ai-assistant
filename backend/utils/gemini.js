@@ -1,7 +1,9 @@
 import { GoogleGenAI } from "@google/genai";
 import { OpenRouter } from "@openrouter/sdk";
-const ai = new GoogleGenAI({});
-
+import { Perplexity } from '@perplexity-ai/perplexity_ai';
+const client = new Perplexity({
+  apiKey: "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",
+});
 export async function generateInterviewQuestions(resumeText = "", skillsText = "") {
   try {
     let contextSection = "";
@@ -12,7 +14,7 @@ export async function generateInterviewQuestions(resumeText = "", skillsText = "
       contextSection += `SKILLS/TECHNOLOGIES:\n${skillsText}\n`;
     }
 
-    const prompt = `You are an expert technical interviewer. Based on the following candidate information, generate exactly 10 TECHNICAL interview questions.
+    const prompt = `You are an expert technical interviewer. Based on the following candidate information, generate exactly 5 TECHNICAL interview questions.
 
 ${contextSection}
 
@@ -48,7 +50,7 @@ Guidelines:
 - Mix of: 3-4 Easy, 3-4 Medium, 3-4 Hard questions
 - ALL questions must be purely technical
 - Questions should reference actual technologies from the provided information
-- Return exactly 10 questions
+- Return exactly 5 questions
 
 Example format (return ONLY the JSON array, no markdown or extra text):
 [
@@ -58,34 +60,47 @@ Example format (return ONLY the JSON array, no markdown or extra text):
 ]`;
 
 
-const openrouter = new OpenRouter({
-  apiKey: process.env.OPENROUTER_API_KEY,
-});
+// const openrouter = new OpenRouter({
+//   apiKey: process.env.OPENROUTER_API_KEY,
+// });
 
-const stream = await openrouter.chat.send({
-  model: "google/gemma-3-12b-it:free",
+// const stream = await openrouter.chat.send({
+//   model: "google/gemma-3-12b-it:free",
+//   messages: [
+//     {
+//       "role": "user",
+//       "content": [
+//         {
+//             "type": "text",
+//             "text": prompt
+//           },
+//       ]
+//     }
+//   ],
+//   stream: true
+// });
+const response = await client.chat.completions.create({
+  model: 'sonar',
   messages: [
     {
-      "role": "user",
-      "content": [
-        {
-            "type": "text",
-            "text": prompt
-          },
-      ]
+      role: 'user',
+      content: prompt,
     }
   ],
-  stream: true
+  stream: true,
+  web_search_options: {
+    search_type: 'fast'  // Automatic classification
+  }
 });
 let fullResponse = "";
-for await (const chunk of stream) {
+for await (const chunk of response) {
   const content = chunk.choices[0]?.delta?.content;
   if (content) {
     fullResponse += content;
   }
 }
 fullResponse.trim();
-if(fullResponse.length() <= 0) {
+if(fullResponse.length <= 0) {
   throw new Error("No questions generated");
 }
 fullResponse = fullResponse.split("```json")[1].split("```")[0]; 
@@ -129,28 +144,22 @@ Return ONLY a valid JSON object with this exact format (no markdown, no extra te
 
 Be fair but thorough. Give partial credit for partially correct answers. Provide specific, actionable feedback.`;
 
-    const openrouter = new OpenRouter({
-      apiKey: process.env.OPENROUTER_API_KEY,
-    });
-
-    const stream = await openrouter.chat.send({
-      model: "google/gemma-3-12b-it:free",
-      messages: [
-        {
-          role: "user",
-          content: [
-            {
-              type: "text",
-              text: prompt,
-            },
-          ],
-        },
-      ],
-      stream: true,
-    });
+    const response = await client.chat.completions.create({
+  model: 'sonar',
+  messages: [
+    {
+      role: 'user',
+      content: prompt,
+    }
+  ],
+  stream: true,
+  web_search_options: {
+    search_type: 'fast'  // Automatic classification
+  }
+});
 
     let fullResponse = "";
-    for await (const chunk of stream) {
+    for await (const chunk of response) {
       const content = chunk.choices[0]?.delta?.content;
       if (content) {
         fullResponse += content;
@@ -235,28 +244,51 @@ Return ONLY a valid JSON object with this exact format (no markdown, no extra te
 
 Be comprehensive but concise. Focus on patterns and themes across all answers rather than individual question details. Provide actionable insights.`;
 
-    const openrouter = new OpenRouter({
-      apiKey: process.env.OPENROUTER_API_KEY,
-    });
 
-    const stream = await openrouter.chat.send({
-      model: "google/gemma-3-12b-it:free",
-      messages: [
-        {
-          role: "user",
-          content: [
-            {
-              type: "text",
-              text: prompt,
-            },
-          ],
-        },
-      ],
-      stream: true,
-    });
+
+
+const response = await client.chat.completions.create({
+  model: 'sonar',
+  messages: [
+    {
+      role: 'user',
+      content: prompt,
+    }
+  ],
+  stream: true,
+  web_search_options: {
+    search_type: 'fast'  // Automatic classification
+  }
+});
+
+// for await (const chunk of response) {
+//   if (chunk.choices[0]?.delta?.content) {
+//     process.stdout.write(chunk.choices[0].delta.content);
+//   }
+// }
+
+    // const openrouter = new OpenRouter({
+    //   apiKey: process.env.OPENROUTER_API_KEY,
+    // });
+
+    // const stream = await openrouter.chat.send({
+    //   model: "google/gemma-3-12b-it:free",
+    //   messages: [
+    //     {
+    //       role: "user",
+    //       content: [
+    //         {
+    //           type: "text",
+    //           text: prompt,
+    //         },
+    //       ],
+    //     },
+    //   ],
+    //   stream: true,
+    // });
 
     let fullResponse = "";
-    for await (const chunk of stream) {
+    for await (const chunk of response) {
       const content = chunk.choices[0]?.delta?.content;
       if (content) {
         fullResponse += content;

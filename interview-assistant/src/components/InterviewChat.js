@@ -55,28 +55,24 @@ export default function InterviewChat({ questions = DEFAULT_QUESTIONS }) {
   }, [timeLeft]);
 
   const submitAnswer = async () => {
-    if (currentIndex >= QUESTIONS.length) return;
-    
-    // Add current answer to Redux state (save locally first)
-    const currentAnswer = answer || '[No response]';
-    dispatch(addChatMessage({ from: 'candidate', text: currentAnswer }));
-    dispatch(addAnswer({ 
-      question: QUESTIONS[currentIndex].question, 
-      answer: currentAnswer, 
-      level: QUESTIONS[currentIndex].level 
-    }));
-    
-    // If this is the last question, submit all answers to API
-    if (currentIndex === QUESTIONS.length - 1) {
-      // Wait a moment for Redux to update, then submit
-      setTimeout(() => {
-        submitAllAnswersToAPI();
-      }, 100);
-    } else {
-      // Move to next question
-      dispatch(setCurrentQuestionIndex(currentIndex + 1));
-    }
-  };
+  if (currentIndex >= QUESTIONS.length || isSubmitting) return;
+
+  const currentAnswer = answer || '[No response]';
+  dispatch(addChatMessage({ from: 'candidate', text: currentAnswer }));
+  dispatch(addAnswer({
+    question: QUESTIONS[currentIndex].question,
+    answer: currentAnswer,
+    level: QUESTIONS[currentIndex].level
+  }));
+
+  if (currentIndex === QUESTIONS.length - 1) {
+    setIsSubmitting(true);
+    await submitAllAnswersToAPI(); // call directly, no setTimeout
+  } else {
+    dispatch(setCurrentQuestionIndex(currentIndex + 1));
+  }
+};
+
 
   const submitAllAnswersToAPI = async () => {
     setIsSubmitting(true);
@@ -125,22 +121,25 @@ export default function InterviewChat({ questions = DEFAULT_QUESTIONS }) {
       );
 
       if (response.data.success) {
-        setAssessmentResult(response.data);
-        dispatch(setScore(response.data.finalScore));
-        
-        // Show final score and feedback
-        dispatch(addChatMessage({ 
-          from: 'ai', 
-          text: `Interview Complete! Final Score: ${response.data.finalScore}/50` 
-        }));
-        
-        if (response.data.overallAssessment) {
-          dispatch(addChatMessage({ 
-            from: 'ai', 
-            text: `Overall Feedback: ${response.data.overallAssessment.overallFeedback}` 
-          }));
-        }
-      }
+  setAssessmentResult(response.data);
+  dispatch(setScore(response.data.finalScore));
+
+  dispatch(addChatMessage({
+    from: 'ai',
+    text: `Interview Complete! Final Score: ${response.data.finalScore}/50`
+  }));
+
+  if (response.data.overallAssessment) {
+    dispatch(addChatMessage({
+      from: 'ai',
+      text: `Overall Feedback: ${response.data.overallAssessment.overallFeedback}`
+    }));
+  }
+
+  // Move index past last question so "Interview Complete" UI + loader shows
+  dispatch(setCurrentQuestionIndex(QUESTIONS.length));
+}
+
     } catch (error) {
       console.error('Error submitting answers:', error);
       dispatch(addChatMessage({ 
@@ -319,16 +318,20 @@ export default function InterviewChat({ questions = DEFAULT_QUESTIONS }) {
 
       {/* Submit Button */}
       <button
-        onClick={submitAnswer}
-        disabled={!answer.trim()}
-        className={`w-full py-3 px-6 rounded-lg font-semibold transition-all duration-300 ${
-          answer.trim()
-            ? 'bg-gradient-to-r from-blue-500 to-blue-600 text-white hover:from-blue-600 hover:to-blue-700 shadow-lg shadow-blue-500/30 cursor-pointer'
-            : 'bg-slate-700 text-slate-500 cursor-not-allowed'
-        }`}
-      >
-        Submit Answer
-      </button>
+  onClick={submitAnswer}
+  disabled={!answer.trim() || isSubmitting}
+  className={`w-full py-3 px-6 rounded-lg font-semibold transition-all duration-300 ${
+    answer.trim() && !isSubmitting
+      ? 'bg-gradient-to-r from-blue-500 to-blue-600 text-white hover:from-blue-600 hover:to-blue-700 shadow-lg shadow-blue-500/30 cursor-pointer'
+      : 'bg-slate-700 text-slate-500 cursor-not-allowed'
+  }`}
+>
+  {isSubmitting && currentIndex === QUESTIONS.length - 1
+    ? 'Generating Report...'
+    : 'Submit Answer'}
+</button>
+
+      
 
       {chatHistory.length > 0 && (
         <div style={{gridColumn:'2/3'}}>

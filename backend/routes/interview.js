@@ -5,12 +5,13 @@ import mammoth from "mammoth";
 import { createRequire } from 'module';
 import { generateInterviewQuestions, assessAnswer, generateOverallAssessment } from "../utils/gemini.js";
 import Candidate from "../models/Candidate.js";
+import { generateQuestionsLimiter, submitAnswerLimiter } from "../middleware/rateLimiter.js";
 
 const router = express.Router();
 const upload = multer({ dest: "uploads/" });
 
 
-router.post("/generate-questions", upload.single("resume"), async (req, res) => {
+router.post("/generate-questions", generateQuestionsLimiter, upload.single("resume"), async (req, res) => {
   try {
     let resumeText = "";
     let skillsText = "";
@@ -95,7 +96,7 @@ router.post("/generate-questions", upload.single("resume"), async (req, res) => 
 });
 
 // POST /api/submit-answer - Submit all answers for assessment (called once when interview is complete)
-router.post("/submit-answer", async (req, res) => {
+router.post("/submit-answer", submitAnswerLimiter, async (req, res) => {
   try {
     const { questionsAndAnswers, candidateId } = req.body;
 
