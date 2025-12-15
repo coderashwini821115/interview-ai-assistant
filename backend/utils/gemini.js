@@ -106,9 +106,16 @@ fullResponse.trim();
 if(fullResponse.length <= 0) {
   throw new Error("No questions generated");
 }
-fullResponse = fullResponse.split("```json")[1].split("```")[0]; 
+console.log("Full response for questions:", fullResponse);
+if (fullResponse.includes("```json")) {
+  fullResponse = fullResponse.split("```json").split("```").trim();[1]
+} else if (fullResponse.includes("```")) {
+  fullResponse = fullResponse.split("```")[1].split("```")[0].trim();
+}
+// If no backticks found, assume whole string is JSON
 const questions = JSON.parse(fullResponse);
 return questions;
+
 } catch (error) {
   console.error("Error generating interview questions:", error);// throw new Error("Failed to generate interview questions");
 }

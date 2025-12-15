@@ -8,13 +8,14 @@ import LoginPage from './components/LoginPage';
 import SignupPage from './components/SignupPage';
 import StartInterview from './components/StartInterview';
 import { useAuth } from './components/AuthContext';
-
+import { BASE_URL } from './config';
 export default function App() {
   const { user, token, login, signup, logout, authHeader } = useAuth();
-  const [generatedQuestions, setGeneratedQuestions] = useState(null);
+  
   const [interviews, setInterviews] = useState([]);
   const [candidates, setCandidates] = useState([]);
   const [authView, setAuthView] = useState(null); // 'login' | 'signup' | null
+  
 
   // Fetch candidate interview history after login
   useEffect(() => {
@@ -25,7 +26,7 @@ export default function App() {
         ...authHeader()
       };
       
-      fetch('http://localhost:4000/candidates', { headers })
+      fetch(`${BASE_URL}/candidates`, { headers })
         .then(res => {
           if (!res.ok) {
             return res.json().then(err => {
@@ -51,7 +52,7 @@ export default function App() {
         ...authHeader()
       };
       
-      fetch('http://localhost:4000/candidates', { headers })
+      fetch(`${BASE_URL}/candidates`, { headers })
         .then(res => {
           if (!res.ok) {
             return res.json().then(err => {
@@ -69,17 +70,7 @@ export default function App() {
 
   const handleLogin = () => setAuthView('login');
   const handleSignup = () => setAuthView('signup');
-  const handleStartInterview = () => {
-    setGeneratedQuestions(null);
-    setAuthView(null);
-    setShowStart(true);
-  };
-  const [showStart, setShowStart] = useState(false);
-
-  function onQuestionsGenerated(questions) {
-    setGeneratedQuestions(questions);
-    setShowStart(false);
-  }
+  
   return (
     <div>
       <header className="app-header">
@@ -98,9 +89,8 @@ export default function App() {
         {authView === 'signup' && <SignupPage onCancel={() => setAuthView(null)} />}
         {user?.role === 'candidate' && (
           <>
-            <CandidateDashboard user={user} onStartInterview={handleStartInterview} interviews={interviews} />
-            {showStart && <StartInterview onGenerate={onQuestionsGenerated} onCancel={() => setShowStart(false)} />}
-            {generatedQuestions && <div style={{ marginTop: 16 }}><InterviewChat questions={generatedQuestions} /></div>}
+            <CandidateDashboard user={user} interviews={interviews} setAuthView={setAuthView}/>
+            
           </>
         )}
         {user?.role === 'interviewer' && (

@@ -22,10 +22,8 @@ router.post("/generate-questions", generateQuestionsLimiter, upload.single("resu
       console.log("Received skills:", skillsText, " ", req.body.skills);
     }
 
-    // Parse resume file if provided (optional)
     if (req.file) {
       if (req.file.mimetype === "application/pdf") {
-        // Load pdfjs via createRequire to avoid ESM export resolution issues
         const require = createRequire(import.meta.url);
         const pdfjs = require('pdfjs-dist/legacy/build/pdf.js');
         const data = await fs.readFile(req.file.path);
@@ -54,7 +52,6 @@ router.post("/generate-questions", generateQuestionsLimiter, upload.single("resu
       }
     }
 
-    // Validate: at least resume or skills must be provided
     if (
       (!resumeText || resumeText.trim().length < 50) &&
       (!skillsText || skillsText.length < 3)
@@ -65,10 +62,9 @@ router.post("/generate-questions", generateQuestionsLimiter, upload.single("resu
       });
     }
 
-    // Generate questions using Gemini with resume and/or skills
     const questions = await generateInterviewQuestions(resumeText, skillsText);
 
-    // Clean up uploaded file
+
     if (req.file) {
       await fs.unlink(req.file.path).catch(() => {});
     }
@@ -83,7 +79,7 @@ router.post("/generate-questions", generateQuestionsLimiter, upload.single("resu
   } catch (error) {
     console.error("Error in generate-questions:", error);
 
-    // Clean up uploaded file
+
     if (req.file) {
       await fs.unlink(req.file.path).catch(() => {});
     }
@@ -95,7 +91,6 @@ router.post("/generate-questions", generateQuestionsLimiter, upload.single("resu
   }
 });
 
-// POST /api/submit-answer - Submit all answers for assessment (called once when interview is complete)
 router.post("/submit-answer", submitAnswerLimiter, async (req, res) => {
   try {
     const { questionsAndAnswers, candidateId } = req.body;
@@ -121,7 +116,6 @@ router.post("/submit-answer", submitAnswerLimiter, async (req, res) => {
       }
     }
 
-    // Assess each answer using LLM
     const assessments = [];
     for (const item of questionsAndAnswers) {
       try {
@@ -161,10 +155,8 @@ router.post("/submit-answer", submitAnswerLimiter, async (req, res) => {
       overallAssessment = await generateOverallAssessment(assessments);
     } catch (error) {
       console.error("Error generating overall assessment:", error);
-      // Continue even if overall assessment fails
     }
 
-    // Save to database if candidateId is provided
     if (candidateId) {
       try {
         const candidate = await Candidate.findById(candidateId);
@@ -199,7 +191,6 @@ router.post("/submit-answer", submitAnswerLimiter, async (req, res) => {
           // Add to previousInterviews array
           candidate.previousInterviews.push(interviewResult);
 
-          // Update current/latest interview fields for backward compatibility
           candidate.answers = interviewResult.answers;
           candidate.finalScore = finalScoreOutOf50;
           if (overallAssessment) {

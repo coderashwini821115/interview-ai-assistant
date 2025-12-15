@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { useDispatch } from 'react-redux';
 import axios from 'axios';
 import { setProfile } from '../feature/candidateSlice';
+import { BASE_URL } from '../config';
 
 export default function ResumeUpload({ onQuestionsGenerated }) {
   const dispatch = useDispatch();
@@ -27,7 +28,7 @@ export default function ResumeUpload({ onQuestionsGenerated }) {
 
     try {
       // Upload and generate questions
-      const response = await axios.post('http://localhost:4000/api/generate-questions', formData, {
+      const response = await axios.post(`${BASE_URL}/api/generate-questions`, formData, {
         headers: { 'Content-Type': 'multipart/form-data' },
       });
 

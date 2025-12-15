@@ -4,7 +4,7 @@ import { useSelector, useDispatch } from 'react-redux';
 import { addChatMessage, addAnswer, setCurrentQuestionIndex, setScore, reset } from '../feature/candidateSlice';
 import axios from 'axios';
 import { useAuth } from './AuthContext';
-
+import { BASE_URL } from '../config';
 const DEFAULT_QUESTIONS = [
   { level: 'Easy', question: 'What is React?', time: 20 },
   { level: 'Easy', question: 'Explain state and props.', time: 20 },
@@ -107,7 +107,7 @@ export default function InterviewChat({ questions = DEFAULT_QUESTIONS }) {
 
       // Call the API
       const response = await axios.post(
-        'http://localhost:4000/api/submit-answer',
+        `${BASE_URL}/api/submit-answer`,
         {
           questionsAndAnswers,
           candidateId: user?.candidateId

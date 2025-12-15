@@ -1,5 +1,5 @@
 import React, { createContext, useContext, useState, useEffect } from "react";
-
+import { BASE_URL } from '../config';
 const AuthContext = createContext();
 
 export function AuthProvider({ children }) {
@@ -23,7 +23,7 @@ export function AuthProvider({ children }) {
   }, [token]);
 
   async function login({ email, password }) {
-    const res = await fetch('http://localhost:4000/auth/login', {
+    const res = await fetch(`${BASE_URL}/auth/login`, {
       method: 'POST', headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ email, password })
     });
@@ -36,7 +36,7 @@ export function AuthProvider({ children }) {
   }
 
   async function signup({ name, email, password, role }) {
-    const res = await fetch('http://localhost:4000/auth/signup', {
+    const res = await fetch(`${BASE_URL}/auth/signup`, {
       method: 'POST', headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ name, email, password, role })
     });

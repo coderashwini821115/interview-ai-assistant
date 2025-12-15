@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { useAuth } from './AuthContext';
+import { BASE_URL } from '../config';
 
 export default function StartInterview({ onGenerate, onCancel }) {
   const [file, setFile] = useState(null);
@@ -17,7 +18,7 @@ export default function StartInterview({ onGenerate, onCancel }) {
       if (file) form.append('resume', file);
       if (skills && skills.trim()) form.append('skills', skills.trim());
 
-      const res = await fetch('http://localhost:4000/api/generate-questions', {
+      const res = await fetch(`${BASE_URL}/api/generate-questions`, {
         method: 'POST',
         headers: {
           // include auth header if present
