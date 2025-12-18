@@ -16,6 +16,20 @@ export default function CandidateDashboard({ user, interviews, setAuthView }) {
     setGeneratedQuestions(questions);
     setShowStart(false);
   }
+  const formatDate = (iso) => {
+    const date = new Date(iso);
+
+// Example: "15 Dec 2025, 12:17 am"
+const readable = date.toLocaleString("en-IN", {
+  day: "2-digit",
+  month: "short",
+  year: "numeric",
+  hour: "2-digit",
+  minute: "2-digit",
+  hour12: true,
+});
+return readable;
+  }
   return (
     <div className="candidate-dashboard card">
       <h2>Welcome, {user?.name || "Candidate"}!</h2>
@@ -27,7 +41,7 @@ export default function CandidateDashboard({ user, interviews, setAuthView }) {
         {interviews && interviews.length > 0 ? (
           interviews.map((iv, idx) => (
             <li key={idx} className="history-item">
-              <span>Date: {iv.date}</span>
+              <span>Date: {formatDate(iv.interviewDate)}</span>
               <span>Score: {iv.finalScore}</span>
               <span>Summary: {iv.summary}</span>
             </li>
